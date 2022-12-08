@@ -1,9 +1,16 @@
-var fieldName = document.querySelector('#exampleInputName')
-var fieldGender = document.querySelectorAll("#form-user-create [name=gender]:checked")
-var fieldBirth = document.querySelector('#exampleInputBirth')
-var fieldCountry = document.querySelector('#exampleInputCountry')
-var fieldEmail = document.querySelector('#exampleInputEmail1')
-var fieldPassword = document.querySelector('#exampleInputPassword1')
-var fieldFile = document.querySelector('#exampleInputFile')
-var fieldCheckboxAdmin = document.querySelector('#form-user-create [name=admin]')
+var fields = document.querySelectorAll('#form-user-create [name]')
 
+var userData = {};
+
+fields.forEach((field, index)=>{
+    if(field.name === "gender" && field.checked){
+        userData[field.name] = field.value
+    } else {
+        userData[field.name] = field.value
+}
+});
+
+
+document.getElementById('form-user-create').addEventListener('submit',(event)=>{
+    event.preventDefault();
+})
