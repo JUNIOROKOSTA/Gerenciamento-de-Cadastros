@@ -3,6 +3,12 @@ class UserController {
         this.formElById = document.getElementById(formId);
         this.tableEl = document.getElementById(tableId);
 
+        this.btnCencelEdit = document.querySelector('.btn-canceled-edit')
+        this.btnSaveEdit = document.querySelector('.btn-saved-edit')
+
+        this.displayCreat = document.getElementById('box-user-creat')
+        this.displayUpdata = document.getElementById('box-user-updata')
+
         this.formSubmit();
 
     }; // closed constructor
@@ -10,9 +16,37 @@ class UserController {
     btnToggleSubmit(){
         let btnsubmit = this.formElById.querySelector('[type=submit]');
         btnsubmit.disabled = (btnsubmit.disabled)? false : true;
-    }
+    }; // closed btnToggleSubmit
+
+    togglePainelForm(){
+        let btnUp =  document.querySelectorAll('.btn-updata');
+        let btnDel =  document.querySelectorAll('.btn-delet');
+
+        if(this.displayCreat.style.display == 'none'){
+            this.displayCreat.style.display = 'block';
+            this.displayUpdata.style.display = 'none';
+
+            btnUp.forEach((e)=>{e.disabled = false});
+            btnDel.forEach((e)=>{e.disabled = false});
+            
+        } else {
+            this.displayCreat.style.display = 'none';
+            this.displayUpdata.style.display = 'block';
+
+            btnUp.forEach((e)=>{e.disabled = true});
+            btnDel.forEach((e)=>{e.disabled = true});
+            
+        }
+        // document.getElementById('box-user-creat').style.display = 'none'
+        // document.getElementById('box-user-updata').style.display = 'block'
+
+    }; // closed togglePainelForm
 
     formSubmit(){
+
+        this.btnCencelEdit.addEventListener('click',()=>{
+            this.togglePainelForm();
+        });
 
         this.formElById.addEventListener('submit',event=>{
 
@@ -125,10 +159,16 @@ class UserController {
 
     formatDate(date){
         return date.toLocaleDateString();
-    }
+    }; // closed formatDate
+
+
+    
     
     showDataUser(datauser){
         let tr = document.createElement('tr')
+
+        tr.dataset.data = JSON.stringify(datauser);
+
         tr.innerHTML = `
 
                 <td>
@@ -139,14 +179,60 @@ class UserController {
                     <td>${(datauser.admin == true)? "Sim" : "Não"}</td>
                     <td>${this.formatDate(datauser.dateRegister)}</td>
                 <td>
-                    <button type="button" class="btn btn-primary btn-xs btn-flat">Editar</button>
-                    <button type="button" class="btn btn-danger btn-xs btn-flat">Excluir</button>
+                    <button type="button" class="btn btn-primary btn-updata btn-xs btn-flat">Editar</button>
+                    <button type="button" class="btn btn-danger btn-delet btn-xs btn-flat">Excluir</button>
                 </td>
 
         `;
 
+        tr.querySelector('.btn-updata').addEventListener('click', e =>{
+            let json = JSON.parse(tr.dataset.data)
+            let formUpata = document.querySelector('#form-user-updata')
+
+            for ( let element in json){
+                let elementP = element.replace('_','');
+
+                if(json[element] == ''){continue}
+
+                let field = formUpata.querySelector("[name=" + elementP + "]");
+
+                if(field){
+                    if(field.type == 'file') continue;
+                    field.value = json[element];
+                };
+
+            };
+
+
+            this.togglePainelForm();
+        });
+
         this.tableEl.appendChild(tr);
+
+        this.countUpdata();
         
-    }; // closed showDataUser
+    }; // closed showDataUser 
+
+    countUpdata(){
+
+        let countUsers = 0;
+        let countAdmins = 0;
+
+        [...this.tableEl.children].forEach(tr => {
+            countUsers++;
+            let data = JSON.parse(tr.dataset.data)
+
+            if(data._admin){
+                countAdmins++;
+            };
+        });
+
+        document.getElementById('count-users').innerHTML = countUsers;
+        document.getElementById('count-admins').innerHTML = countAdmins;
+
+    }; // closed countUpdata
 
 }; // closed UserController
+
+
+// form-user-updata -updata
