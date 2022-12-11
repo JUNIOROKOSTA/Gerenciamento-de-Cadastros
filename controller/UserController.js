@@ -1,6 +1,7 @@
 class UserController {
-    constructor(formId, tableId){
-        this.formElById = document.getElementById(formId);
+    constructor(formIdCreat,formIdUpdate, tableId){
+        this.formIdCreat = document.getElementById(formIdCreat);
+        this.formIdUpdate = document.getElementById(formIdUpdate);
         this.tableEl = document.getElementById(tableId);
 
         this.btnCencelEdit = document.querySelector('.btn-canceled-edit')
@@ -13,10 +14,63 @@ class UserController {
 
     }; // closed constructor
     
-    btnToggleSubmit(){
-        let btnsubmit = this.formElById.querySelector('[type=submit]');
+    btnToggleSubmit(btnSubmit){
+        let btnsubmit = btnSubmit.querySelector('[type=submit]');
         btnsubmit.disabled = (btnsubmit.disabled)? false : true;
     }; // closed btnToggleSubmit
+
+    formSubmitUpdate(){
+        this.formIdUpdate.addEventListener('submit', e =>{
+            e.preventDefault();
+            this.btnToggleSubmit(this.formIdUpdate)
+
+            this.getValues(this.formIdUpdate).then((sucesso)=>{
+                this.getPhoto().then(
+                    (sucess) =>{
+                        sucesso.photo = sucess;
+                        let indexTr = this.formIdUpdate.dataset.trIndex
+
+                        let tr = this.tableEl.rows[indexTr];
+
+                        tr.dataset.userData = JSON.stringify(sucess)
+
+                        tr.innerHTML = `
+
+                            <td>
+                                <img src="${sucesso.photo}" alt="User Image" class="img-circle img-sm">
+                            </td>
+                                <td>${sucesso.name}</td>
+                                <td>${sucesso.email}</td>
+                                <td>${(sucesso.admin == true)? "Sim" : "Não"}</td>
+                                <td>${this.formatDate(sucesso.dateRegister)}</td>
+                            <td>
+                                <button type="button" class="btn btn-primary btn-updata btn-xs btn-flat">Editar</button>
+                                <button type="button" class="btn btn-danger btn-delet btn-xs btn-flat">Excluir</button>
+                            </td>
+
+                        `;
+
+                        this.addEventsTr(tr);
+    
+                        
+
+                        this.countUpdata();
+
+                }, 
+                (error) =>{
+                    console.error(error);
+                });
+
+            }, (error)=>{
+                console.log(error)
+            });
+            this.formIdUpdate.reset()
+            this.btnToggleSubmit(this.formIdUpdate);
+            this.togglePainelForm();
+            
+        });
+        
+    };
 
     togglePainelForm(){
         let btnUp =  document.querySelectorAll('.btn-updata');
@@ -48,19 +102,19 @@ class UserController {
             this.togglePainelForm();
         });
 
-        this.formElById.addEventListener('submit',event=>{
+        this.formIdCreat.addEventListener('submit',event=>{
 
             event.preventDefault();
 
-            this.btnToggleSubmit();
+            this.btnToggleSubmit(this.formIdCreat);
 
-            this.getValues().then((sucesso)=>{
+            this.getValues(this.formIdCreat).then((sucesso)=>{
                 this.getPhoto().then(
                     (sucess) =>{
                         sucesso.photo = sucess;
                         this.showDataUser(sucesso);
     
-                        this.formElById.reset()
+                        this.formIdCreat.reset()
                 }, 
                 (error) =>{
                     console.error(error);
@@ -72,7 +126,7 @@ class UserController {
 
             
 
-            this.btnToggleSubmit();
+            this.btnToggleSubmit(this.formIdCreat);
 
         });
 
@@ -86,7 +140,7 @@ class UserController {
 
             let fileReader = new FileReader();
 
-            let onPhoto = [...this.formElById.elements].filter(item=>{
+            let onPhoto = [...this.formIdCreat.elements].filter(item=>{
                 if (item.name === 'photo') {return item};
             });
 
@@ -111,13 +165,13 @@ class UserController {
         
     }; // closed getPhoto
 
-    getValues(){
+    getValues(formEl){
         return new Promise((resolve, reject)=>{
             
         let userData = {};
         let isValid = true;
         
-        [...this.formElById.elements].forEach(function(field, index){
+        [...formEl.elements].forEach(function(field, index){
             
             if(['name','email','password'].indexOf(field.name) > -1 && !field.value){
                 field.parentElement.classList.add('has-error')
@@ -185,33 +239,59 @@ class UserController {
 
         `;
 
-        tr.querySelector('.btn-updata').addEventListener('click', e =>{
-            let json = JSON.parse(tr.dataset.data)
-            let formUpata = document.querySelector('#form-user-updata')
-
-            for ( let element in json){
-                let elementP = element.replace('_','');
-
-                if(json[element] == ''){continue}
-
-                let field = formUpata.querySelector("[name=" + elementP + "]");
-
-                if(field){
-                    if(field.type == 'file') continue;
-                    field.value = json[element];
-                };
-
-            };
-
-
-            this.togglePainelForm();
-        });
+        this.addEventsTr(tr);
 
         this.tableEl.appendChild(tr);
 
         this.countUpdata();
         
     }; // closed showDataUser 
+
+    addEventsTr(tr){
+        tr.querySelector('.btn-updata').addEventListener('click', e =>{
+            let json = JSON.parse(tr.dataset.data)
+            let formUpata = document.querySelector('#form-user-updata')
+
+            formUpata.dataset.trIndex = tr.sectionRowIndex;
+
+            for ( let element in json){
+                let elementP = element.replace('_','');
+
+                let field = formUpata.querySelector("[name=" + elementP + "]");
+
+                if(field){
+
+                    switch (field.type){
+                        case 'file':
+                            continue;
+                        break;
+                        
+                        case 'radio':
+                            field = formUpata.querySelector("[name=" + elementP + 
+                            "][value=" + json[element] + "]");
+
+                            field.checked = true
+                        break;
+                        
+                        case 'checkbox':
+                            field.checked = json[element]
+                        break;
+                        
+                        default:
+                            field.value = json[element];
+
+                    };
+                    
+                };
+
+            };
+
+
+            this.togglePainelForm();
+
+            this.formSubmitUpdate();
+        });
+    }
 
     countUpdata(){
 
