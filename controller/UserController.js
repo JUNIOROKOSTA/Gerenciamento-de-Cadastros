@@ -11,6 +11,7 @@ class UserController {
         this.displayUpdata = document.getElementById('box-user-updata')
 
         this.formSubmit();
+        this.formSubmitUpdate();
 
     }; // closed constructor
     
@@ -19,20 +20,40 @@ class UserController {
         btnsubmit.disabled = (btnsubmit.disabled)? false : true;
     }; // closed btnToggleSubmit
 
+    reshowPhoto(form){
+        let filephoto = form.querySelector('[name=photo]');
+        filephoto.addEventListener('change', e=>{
+            this.getPhoto(form).then((result) =>{
+                this.showPhotoEdit(form, result)
+            })
+        });
+    }
+
     formSubmitUpdate(){
+
+        this.btnCencelEdit.addEventListener('click',()=>{
+            this.togglePainelForm();
+        });
+
+        this.reshowPhoto(this.formIdUpdate);
         this.formIdUpdate.addEventListener('submit', e =>{
             e.preventDefault();
             this.btnToggleSubmit(this.formIdUpdate)
 
             this.getValues(this.formIdUpdate).then((sucesso)=>{
-                this.getPhoto().then(
+                this.getPhoto(this.formIdUpdate).then(
                     (sucess) =>{
                         sucesso.photo = sucess;
                         let indexTr = this.formIdUpdate.dataset.trIndex
-
                         let tr = this.tableEl.rows[indexTr];
+                        let axPhoto = JSON.parse(tr.dataset.datauser)._photo
+                        
+                        if(axPhoto != sucesso.photo && sucesso.photo == "dist/img/person.png"){
+                            sucesso.photo = axPhoto;
+                        };
 
-                        tr.dataset.userData = JSON.stringify(sucess)
+
+                        tr.dataset.datauser = JSON.stringify(sucesso)
 
                         tr.innerHTML = `
 
@@ -64,9 +85,9 @@ class UserController {
             }, (error)=>{
                 console.log(error)
             });
-            this.formIdUpdate.reset()
             this.btnToggleSubmit(this.formIdUpdate);
             this.togglePainelForm();
+            this.showPhotoEdit(this.formIdUpdate)
             
         });
         
@@ -98,9 +119,7 @@ class UserController {
 
     formSubmit(){
 
-        this.btnCencelEdit.addEventListener('click',()=>{
-            this.togglePainelForm();
-        });
+        this.reshowPhoto(this.formIdCreat);
 
         this.formIdCreat.addEventListener('submit',event=>{
 
@@ -109,7 +128,7 @@ class UserController {
             this.btnToggleSubmit(this.formIdCreat);
 
             this.getValues(this.formIdCreat).then((sucesso)=>{
-                this.getPhoto().then(
+                this.getPhoto(this.formIdCreat).then(
                     (sucess) =>{
                         sucesso.photo = sucess;
                         this.showDataUser(sucesso);
@@ -127,21 +146,21 @@ class UserController {
             
 
             this.btnToggleSubmit(this.formIdCreat);
+            this.showPhotoEdit(this.formIdCreat)
 
         });
 
-        
 
     }; // closed formSubmit
 
-    getPhoto(){
+    getPhoto(form){
 
         return new Promise((resolve, reject)=>{
 
             let fileReader = new FileReader();
 
-            let onPhoto = [...this.formIdCreat.elements].filter(item=>{
-                if (item.name === 'photo') {return item};
+            let onPhoto = [...form.elements].filter(item=>{
+                if (item.name == 'photo') {return item};
             });
 
             let currentFile = (onPhoto[0].files[0]);
@@ -154,13 +173,13 @@ class UserController {
             fileReader.onerror = (e) =>{
                 reject(e);
             }
-            if(currentFile){
+            if(currentFile){          
                 fileReader.readAsDataURL(currentFile);
             } else{
                 resolve("dist/img/person.png");
             }
 
-        }); // END Primise
+        }); // END Promise
 
         
     }; // closed getPhoto
@@ -221,7 +240,7 @@ class UserController {
     showDataUser(datauser){
         let tr = document.createElement('tr')
 
-        tr.dataset.data = JSON.stringify(datauser);
+        tr.dataset.datauser = JSON.stringify(datauser);
 
         tr.innerHTML = `
 
@@ -249,7 +268,7 @@ class UserController {
 
     addEventsTr(tr){
         tr.querySelector('.btn-updata').addEventListener('click', e =>{
-            let json = JSON.parse(tr.dataset.data)
+            let json = JSON.parse(tr.dataset.datauser)
             let formUpata = document.querySelector('#form-user-updata')
 
             formUpata.dataset.trIndex = tr.sectionRowIndex;
@@ -285,12 +304,21 @@ class UserController {
                 };
 
             };
-
-
+            this.showPhotoEdit(this.formIdUpdate, json._photo);
             this.togglePainelForm();
-
-            this.formSubmitUpdate();
+            
         });
+
+    }; // Closed addEventsTr
+
+    showPhotoEdit(form, photo){
+        if(photo){
+            form.querySelector('.photo').src = photo;
+        } else {
+            form.querySelector('.photo').src = "dist/img/person.png" ;
+
+        }
+
     }
 
     countUpdata(){
@@ -300,7 +328,7 @@ class UserController {
 
         [...this.tableEl.children].forEach(tr => {
             countUsers++;
-            let data = JSON.parse(tr.dataset.data)
+            let data = JSON.parse(tr.dataset.datauser)
 
             if(data._admin){
                 countAdmins++;
