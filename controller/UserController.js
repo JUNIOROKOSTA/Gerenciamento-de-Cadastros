@@ -12,6 +12,7 @@ class UserController {
 
         this.formSubmit();
         this.formSubmitUpdate();
+        this.selectAll();
 
     }; // closed constructor
     
@@ -54,6 +55,9 @@ class UserController {
 
 
                         tr.dataset.datauser = JSON.stringify(sucesso)
+                        let user = new User(sucesso);
+                        user.loadFromJSON(sucesso);
+                        user.saveData();
 
                         tr.innerHTML = `
 
@@ -131,6 +135,12 @@ class UserController {
                 this.getPhoto(this.formIdCreat).then(
                     (sucess) =>{
                         sucesso.photo = sucess;
+
+                        let user = new User(sucesso);
+                        user.loadFromJSON(sucesso);
+                        user.saveData();
+
+
                         this.showDataUser(sucesso);
     
                         this.formIdCreat.reset()
@@ -233,11 +243,55 @@ class UserController {
     formatDate(date){
         return date.toLocaleDateString();
     }; // closed formatDate
+    
+    getItemSssionStorage(){
+
+        let dataArray = [];
+
+        // if(sessionStorage.getItem('data')){
+        //     dataArray = JSON.parse(sessionStorage.getItem('data'));
+        // }; // if de armazenamento da dados da sessão atual.
 
 
+        if(localStorage.getItem('data')){
+            dataArray = JSON.parse(localStorage.getItem('data'));
+        }; // if de armazenamento da dados da sessão em modo local.
+
+
+        return dataArray;
+
+    }; // closed getItemSssionStorage
+
+    selectAll(){
+        let dataArray = this.getItemSssionStorage();
+
+        dataArray.forEach(datauser=>{
+            let user = new User()
+
+            user.loadFromJSON(datauser)
+
+            this.showDataUser(user);
+        });
+
+    }; // closed selectAll
+
+    // saveSessionStorage(datauser){
+    //     let dataArray = this.getItemSssionStorage();
+
+    //     dataArray.push(datauser);
+
+    //     let data = JSON.stringify(dataArray);
+    //     // sessionStorage.setItem("data", data ); // armazena os dados para sessão atual
+    //     localStorage.setItem("data", data ); // armazena os dados sessão localmente
+    //     // Navegador tem um limite de armazenamento de tamanho e caracteres.
+    //     // Caso tenha algum erro no Storage , verifique o tanamho dos dados.
+
+    // }; // closed saveSessionStorage
     
     
     showDataUser(datauser){
+
+
         let tr = document.createElement('tr')
 
         tr.dataset.datauser = JSON.stringify(datauser);
@@ -267,9 +321,17 @@ class UserController {
     }; // closed showDataUser 
 
     addEventsTr(tr){
+
+        tr.querySelector('.btn-delet').addEventListener('click', e=>{
+            if(confirm('Deseje realmente excluir esse Registro?')){
+                tr.remove();
+                this.countUpdata();
+            };
+        });
+
         tr.querySelector('.btn-updata').addEventListener('click', e =>{
-            let json = JSON.parse(tr.dataset.datauser)
-            let formUpata = document.querySelector('#form-user-updata')
+            let json = JSON.parse(tr.dataset.datauser);
+            let formUpata = document.querySelector('#form-user-updata');
 
             formUpata.dataset.trIndex = tr.sectionRowIndex;
 
