@@ -42,6 +42,7 @@ class UserController {
             this.btnToggleSubmit(this.formIdUpdate)
 
             this.getValues(this.formIdUpdate).then((sucesso)=>{
+
                 this.getPhoto(this.formIdUpdate).then(
                     (sucess) =>{
                         sucesso.photo = sucess;
@@ -52,12 +53,11 @@ class UserController {
                         if(axPhoto != sucesso.photo && sucesso.photo == "dist/img/person.png"){
                             sucesso.photo = axPhoto;
                         };
-
+                        
 
                         tr.dataset.datauser = JSON.stringify(sucesso)
-                        let user = new User(sucesso);
-                        user.loadFromJSON(sucesso);
-                        user.saveData();
+
+                        sucesso.saveData()
 
                         tr.innerHTML = `
 
@@ -76,9 +76,6 @@ class UserController {
                         `;
 
                         this.addEventsTr(tr);
-    
-                        
-
                         this.countUpdata();
 
                 }, 
@@ -132,15 +129,11 @@ class UserController {
             this.btnToggleSubmit(this.formIdCreat);
 
             this.getValues(this.formIdCreat).then((sucesso)=>{
+                
                 this.getPhoto(this.formIdCreat).then(
                     (sucess) =>{
                         sucesso.photo = sucess;
-
-                        let user = new User(sucesso);
-                        user.loadFromJSON(sucesso);
-                        user.saveData();
-
-
+                        sucesso.saveData()
                         this.showDataUser(sucesso);
     
                         this.formIdCreat.reset()
@@ -226,7 +219,8 @@ class UserController {
         if(!isValid){
             reject()
         }
-        resolve(new User(
+
+        let user = new User(
             userData.name, 
             userData.gender, 
             userData.birth, 
@@ -234,10 +228,13 @@ class UserController {
             userData.email, 
             userData.password, 
             userData.admin, 
-            userData.photo))
-        
-
-        })
+            userData.photo,
+            userData.id
+            );
+        resolve(
+            user
+            );
+        });
     }; // closed getValues
 
     formatDate(date){
@@ -289,22 +286,22 @@ class UserController {
     // }; // closed saveSessionStorage
     
     
-    showDataUser(datauser){
+    showDataUser(data){
 
 
         let tr = document.createElement('tr')
 
-        tr.dataset.datauser = JSON.stringify(datauser);
+        tr.dataset.datauser = JSON.stringify(data);
 
         tr.innerHTML = `
 
                 <td>
-                    <img src="${datauser.photo}" alt="User Image" class="img-circle img-sm">
+                    <img src="${data.photo}" alt="User Image" class="img-circle img-sm">
                 </td>
-                    <td>${datauser.name}</td>
-                    <td>${datauser.email}</td>
-                    <td>${(datauser.admin == true)? "Sim" : "Não"}</td>
-                    <td>${this.formatDate(datauser.dateRegister)}</td>
+                    <td>${data.name}</td>
+                    <td>${data.email}</td>
+                    <td>${(data.admin == true)? "Sim" : "Não"}</td>
+                    <td>${this.formatDate(data.dateRegister)}</td>
                 <td>
                     <button type="button" class="btn btn-primary btn-updata btn-xs btn-flat">Editar</button>
                     <button type="button" class="btn btn-danger btn-delet btn-xs btn-flat">Excluir</button>

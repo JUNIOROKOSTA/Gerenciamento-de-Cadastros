@@ -1,7 +1,7 @@
 class User {
-    constructor(name, gender, birth, country, email, password, admin, photo){
+    constructor(name, gender, birth, country, email, password, admin, photo, id){
 
-        this._id;
+        this._id = id;
         this._name = name;
         this._gender = gender;
         this._birth = birth;
@@ -44,7 +44,9 @@ class User {
     }; // closed getItemSssionStorage
 
     getNewID(){
-        if(!window.id) window.id = 0;
+        if(!window.id) {
+            window.id = 0;
+        }
 
         id++;
 
@@ -53,29 +55,24 @@ class User {
 
     saveData(){
         let user = User.getItemSssionStorage();
-        let ax = JSON.stringify(this)
-        ax = JSON.parse(ax)
-        console.log(ax._id)
-
-        if(ax._id > 0){
-            console.log('saveData: Deu bom! ',ax)
+        if(this.id > 0){
             user.map(u=>{
-                if(u._id == ax._id){
-
-                    Object.assign(u, ax);
+  
+                if(u._id == this._id){
+                    Object.assign(u, this);
                 };
 
                 return u;
             });
 
         } else {
-            ax._id = this.getNewID();
+            this._id = (this.getNewID()).toString();
 
-            user.push(ax);
+            user.push(this);
             
         } ;
 
-        localStorage.setItem("data", JSON.stringify(user) ); 
+        localStorage.setItem("data", JSON.stringify(user)); 
 
     };
 
