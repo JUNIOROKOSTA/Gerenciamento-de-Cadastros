@@ -241,26 +241,9 @@ class UserController {
         return date.toLocaleDateString();
     }; // closed formatDate
     
-    getItemSssionStorage(){
-
-        let dataArray = [];
-
-        // if(sessionStorage.getItem('data')){
-        //     dataArray = JSON.parse(sessionStorage.getItem('data'));
-        // }; // if de armazenamento da dados da sessão atual.
-
-
-        if(localStorage.getItem('data')){
-            dataArray = JSON.parse(localStorage.getItem('data'));
-        }; // if de armazenamento da dados da sessão em modo local.
-
-
-        return dataArray;
-
-    }; // closed getItemSssionStorage
 
     selectAll(){
-        let dataArray = this.getItemSssionStorage();
+        let dataArray = User.getItemSssionStorage();
 
         dataArray.forEach(datauser=>{
             let user = new User()
@@ -318,16 +301,23 @@ class UserController {
     }; // closed showDataUser 
 
     addEventsTr(tr){
-
+        let json = JSON.parse(tr.dataset.datauser);
         tr.querySelector('.btn-delet').addEventListener('click', e=>{
             if(confirm('Deseje realmente excluir esse Registro?')){
                 tr.remove();
+
+                let user = new User();
+
+                user.loadFromJSON(json);
+
+                user.remoceData();
+                
                 this.countUpdata();
             };
         });
 
         tr.querySelector('.btn-updata').addEventListener('click', e =>{
-            let json = JSON.parse(tr.dataset.datauser);
+            
             let formUpata = document.querySelector('#form-user-updata');
 
             formUpata.dataset.trIndex = tr.sectionRowIndex;

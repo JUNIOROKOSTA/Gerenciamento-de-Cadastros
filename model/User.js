@@ -44,13 +44,14 @@ class User {
     }; // closed getItemSssionStorage
 
     getNewID(){
-        if(!window.id) {
-            window.id = 0;
+
+        let idCaunt = parseInt(localStorage.getItem('idCaunt'))
+        if(!idCaunt > 0) {
+            idCaunt = 0;
         }
-
-        id++;
-
-        return id;
+        idCaunt++;
+        localStorage.setItem('idCaunt', idCaunt)
+        return idCaunt;
     };
 
     saveData(){
@@ -58,7 +59,7 @@ class User {
         if(this.id > 0){
             user.map(u=>{
   
-                if(u._id == this._id){
+                if(u._id === this._id){
                     Object.assign(u, this);
                 };
 
@@ -75,6 +76,17 @@ class User {
         localStorage.setItem("data", JSON.stringify(user)); 
 
     };
+
+    remoceData(){
+        let users = User.getItemSssionStorage();
+        users.forEach((data, index) =>{
+            if(this._id == data._id){
+                users.splice(index, 1);
+            }
+        });
+        localStorage.setItem("data", JSON.stringify(users)); 
+
+    }
 
     // Get & Set de _id
     get id(){
